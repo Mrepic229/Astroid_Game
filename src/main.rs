@@ -26,6 +26,7 @@ struct Astroid {
 const PLAYER_SPEED: f32 = 1.0;
 const BULLET_SPEED: f32 = 2.0;
 const BUMPYNESS: f32 = 20.0;
+const ASTROID_SPEED: f32 = 1.0;
 
 #[macroquad::main("BasicShapes")]
 async fn main() {
@@ -37,43 +38,35 @@ async fn main() {
     let mut bullets: Vec<Bullet> = Vec::new();
     let mut example_astroid: Astroid = astroid_generate(player.position, 40.0);
     let mut astroids:Vec<Astroid> = Vec::new();
+
     loop {
         clear_background(WHITE);
 
-        player = player_movement(player);
+        player = player_rotation(player);
 
+        // Spawn Bullets
         if is_mouse_button_down(MouseButton::Right) {
             bullets.push(add_bullet(player));
         }
         if is_mouse_button_down(MouseButton::Left) {
             astroids.push(astroid_generate(get_random_offscree_pos(), 40.0));
-            example_astroid = astroid_generate(player.position, 40.0)
         }
 
-        bullets = bullet_move_or_kill(bullets);
+        bullets = bullets_move_or_kill(bullets);
 
-
-        for i in 0..astroids.len() {
-            astroids[i].position += Vec2{x:1.0, y:1.0};
-        }
-        println!("{}", astroids.len());
-
+        astroids = astroids_move(astroids, player);
 
         example_astroid.position = player.position;
 
-        for i in 0..astroids.len(){
-            let astro = astroids[i].clone();
-            astroid_draw(astro);
-        }
-
         astroid_draw(example_astroid.clone());
+        astroids_draw(astroids.clone());
         draw_bullets(bullets.clone());
         draw_player(player);
         next_frame().await
     }
 }
 
-fn player_movement(mut player:Player) -> Player {
+fn player_rotation(mut player:Player) -> Player {
     player.rotation = ((mouse_position().1-player.position.y)/(mouse_position().0-player.position.x)).atan();
     if (mouse_position().0-player.position.x) < 0.0 {
         player.rotation += PI
@@ -134,7 +127,7 @@ fn draw_bullet(bullet:Bullet) {
     draw_line(pos.x, pos.y, pos.x-(rotation.cos()*length) , pos.y-(rotation.sin()*length), 2.0, RED)
 }
 
-fn bullet_move_or_kill(mut bullets:Vec<Bullet>) -> Vec<Bullet> {
+fn bullets_move_or_kill(mut bullets:Vec<Bullet>) -> Vec<Bullet> {
     let mut i = 0;
     while i < bullets.len() {
         bullets[i] = bullet_forward(bullets[i]);
@@ -211,3 +204,32 @@ fn get_random_offscree_pos() -> Vec2 {
     }
     return Vec2{x:0.0, y:0.0};
 }
+
+fn astroids_draw(astroids:Vec<Astroid>) {
+    for i in 0..astroids.len(){
+        let astro = astroids[i].clone();
+        astroid_draw(astro);
+    }
+}
+
+fn astroids_move(mut astroids:Vec<Astroid>,player:Player) -> Vec<Astroid>{
+    for i in 0..astroids.len() {
+        let rotation = get_angle(astroids[i].position, player.position);
+        astroids[i].position += Vec2{x: rotation.cos(), y: rotation.sin()} * ASTROID_SPEED;
+    }
+    astroids
+}
+
+fn get_angle(point1:Vec2, point2:Vec2) -> f32 {
+    let mut rotation = ((point2.y-point1.y)/(point2.x-point1.x)).atan();
+    if (point2.x- point1.x) < 0.0 {
+        rotation += PI;
+    }
+    return rotation;
+}
+
+fn get_distance(point1:Vec2,point2:Vec2) -> f32 {
+    ((point1.x-point2.x).powf(2.0)+(point1.y-point2.y).powf(2.0)).sqrt()
+}
+
+
