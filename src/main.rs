@@ -1,32 +1,19 @@
+mod astroid;
+mod util;
+mod bullets;
+mod player;
+
 use macroquad::prelude::*;
 use core::f32::consts::PI;
 use fastrand;
 
-#[derive(Clone, Copy)]
-struct Player {
-    position: Vec2,
-    rotation: f32,
-    radius: f32,
-}
+use crate::astroid::Astroid;
+use crate::bullets::Bullet;
+use crate::player::Player;
 
-#[derive(Clone, Copy)]
-struct Bullet {
-    position: Vec2,
-    rotation: f32,
-    length: f32,
-}
 
-#[derive(Clone)]
-struct Astroid {
-    position: Vec2,
-    points: Vec<Vec2>,
-    radius: f32,
-}
 
 const PLAYER_SPEED: f32 = 1.0;
-const BULLET_SPEED: f32 = 2.0;
-const BUMPYNESS: f32 = 20.0;
-const ASTROID_SPEED: f32 = 1.0;
 
 #[macroquad::main("BasicShapes")]
 async fn main() {
@@ -36,7 +23,7 @@ async fn main() {
         radius: 20.0,
     };
     let mut bullets: Vec<Bullet> = Vec::new();
-    let mut example_astroid: Astroid = astroid_generate(player.position, 40.0);
+    let mut example_astroid: Astroid = Astroid::new(player.position, 40.0);
     let mut astroids:Vec<Astroid> = Vec::new();
 
     loop {
@@ -62,7 +49,7 @@ async fn main() {
         astroids_draw(astroids.clone());
         draw_bullets(bullets.clone());
         draw_player(player);
-        next_frame().await
+        next_frame().await;
     }
 }
 
@@ -102,31 +89,6 @@ fn player_forward(mut player:Player) -> Player {
     return player;
 }
 
-fn add_bullet(player:Player) -> Bullet {
-    let bullet: Bullet = Bullet {
-        position: Vec2 {
-            x: player.position.x,
-            y: player.position.y
-        },
-        rotation: player.rotation,
-        length: 20.0, 
-    };
-    bullet
-}
-
-fn bullet_forward(mut bullet:Bullet) -> Bullet {
-    bullet.position.x += BULLET_SPEED * bullet.rotation.cos();
-    bullet.position.y += BULLET_SPEED * bullet.rotation.sin();
-    return bullet;
-}
-
-fn draw_bullet(bullet:Bullet) {
-    let pos = bullet.position;
-    let rotation = bullet.rotation;
-    let length = bullet.length;
-    draw_line(pos.x, pos.y, pos.x-(rotation.cos()*length) , pos.y-(rotation.sin()*length), 2.0, RED)
-}
-
 fn bullets_move_or_kill(mut bullets:Vec<Bullet>) -> Vec<Bullet> {
     let mut i = 0;
     while i < bullets.len() {
@@ -139,97 +101,31 @@ fn bullets_move_or_kill(mut bullets:Vec<Bullet>) -> Vec<Bullet> {
     bullets
 }
 
-fn is_bullet_offscreen(bullet:Bullet) -> bool {
-    let rotation = bullet.rotation;
-    let length = bullet.length;
-    let pos = (bullet.position.x-(rotation.cos()*length) , bullet.position.y-(rotation.sin()*length));
-
-    if (pos.0 > screen_width() || pos.1 > screen_height()) || (pos.0 < 0.0 || pos.1 < 0.0) {
-        return true;
-    }
-    false
-}
-
 fn draw_bullets(bullets:Vec<Bullet>) {
     for i in bullets {
-        draw_bullet(i);
+        Bullet::draw(&i);
     }
-}
-
-fn astroid_draw(mut astroid:Astroid) {
-    astroid.points.push(astroid.points[0]);
-    for i in 0..(astroid.points.len()-1) {
-        let pos = astroid.position;
-        let current_point = Vec2{x: astroid.points[i].x * astroid.points[i].y.cos(), y: astroid.points[i].x * astroid.points[i].y.sin()};
-        let next_point = Vec2{x: astroid.points[i+1].x * astroid.points[i+1].y.cos(), y: astroid.points[i+1].x * astroid.points[i+1].y.sin()};
-        draw_line(
-            current_point.x + pos.x, current_point.y + pos.y,
-            next_point.x + pos.x, next_point.y + pos.y,
-            2.0, BLACK);
-    }
-    
-}
-
-fn astroid_generate(pos: Vec2, radius: f32) -> Astroid {
-    let mut list_of_points:Vec<Vec2> = vec![];
-    for i in 0..12{
-        let point:Vec2 = Vec2 {x: radius - (fastrand::f32()*BUMPYNESS) + (BUMPYNESS/2.0), y: (PI * i as f32)/6.0};
-        list_of_points.push(point);
-    }
-
-    let astroid: Astroid = Astroid {
-        position: pos,
-        points: list_of_points,
-        radius: radius
-    };
-
-    astroid
-}
-
-fn get_random_offscree_pos() -> Vec2 {
-    let distance_from_screen:f32 = 50.0;
-    let location = fastrand::i32(0..4);
-    let fraction = fastrand::f32();
-    if location == 0 {
-        return Vec2{x:((screen_width()+(2.0*distance_from_screen)) * fraction)-distance_from_screen ,y: -distance_from_screen};
-    }
-    if location == 1 {
-        return Vec2{x:screen_width()+distance_from_screen,y: ((screen_height()+(2.0*distance_from_screen)) * fraction)-distance_from_screen};
-    }
-    if location == 2 {
-        return Vec2{x:((screen_width()+(2.0*distance_from_screen)) * fraction)-distance_from_screen ,y: screen_height()+distance_from_screen};
-    }
-    if location == 3 {
-        return Vec2{x:-distance_from_screen,y: ((screen_height()+(2.0*distance_from_screen)) * fraction)-distance_from_screen};
-    }
-    return Vec2{x:0.0, y:0.0};
 }
 
 fn astroids_draw(astroids:Vec<Astroid>) {
     for i in 0..astroids.len(){
-        let astro = astroids[i].clone();
-        astroid_draw(astro);
+        let mut astro = astroids[i].clone();
+        astro.draw();
     }
 }
 
-fn astroids_move(mut astroids:Vec<Astroid>,player:Player) -> Vec<Astroid>{
+fn astroids_move(mut astroids:Vec<Astroid>,player:Player) -> Vec<Astroid> {
     for i in 0..astroids.len() {
-        let rotation = get_angle(astroids[i].position, player.position);
-        astroids[i].position += Vec2{x: rotation.cos(), y: rotation.sin()} * ASTROID_SPEED;
+        
     }
     astroids
 }
 
-fn get_angle(point1:Vec2, point2:Vec2) -> f32 {
-    let mut rotation = ((point2.y-point1.y)/(point2.x-point1.x)).atan();
-    if (point2.x- point1.x) < 0.0 {
-        rotation += PI;
-    }
-    return rotation;
+pub fn move_pos(&mut self) {
+    let rotation = util::get_angle(astroids[i].position, player.position);
+    astroids[i].position += Vec2{x: rotation.cos(), y: rotation.sin()} * ASTROID_SPEED;
 }
 
-fn get_distance(point1:Vec2,point2:Vec2) -> f32 {
-    ((point1.x-point2.x).powf(2.0)+(point1.y-point2.y).powf(2.0)).sqrt()
-}
+
 
 
