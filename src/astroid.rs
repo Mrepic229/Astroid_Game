@@ -1,5 +1,6 @@
 use macroquad::prelude::*;
 use core::f32::consts::PI;
+use crate::util;
 
 #[derive(Clone)]
 pub struct Astroid {
@@ -26,12 +27,13 @@ impl Astroid {
         astroid
     }
 
-    pub fn draw(&mut self) {
-        self.points.push(self.points[0]);
-        for i in 0..(self.points.len()-1) {
-            let pos = self.position;
-            let current_point = Vec2{x: self.points[i].x * self.points[i].y.cos(), y: self.points[i].x * self.points[i].y.sin()};
-            let next_point = Vec2{x: self.points[i+1].x * self.points[i+1].y.cos(), y: self.points[i+1].x * self.points[i+1].y.sin()};
+    pub fn draw(&self) {
+        let mut astroid = self.clone();
+        astroid.points.push(self.points[0]);
+        for i in 0..(astroid.points.len()-1) {
+            let pos = astroid.position;
+            let current_point = Vec2{x: astroid.points[i].x * astroid.points[i].y.cos(), y: astroid.points[i].x * astroid.points[i].y.sin()};
+            let next_point = Vec2{x: astroid.points[i+1].x * astroid.points[i+1].y.cos(), y: astroid.points[i+1].x * astroid.points[i+1].y.sin()};
             draw_line(
                 current_point.x + pos.x, current_point.y + pos.y,
                 next_point.x + pos.x, next_point.y + pos.y,
@@ -40,6 +42,9 @@ impl Astroid {
         
     }
 
-
+    pub fn move_pos(&mut self, target: Vec2) {
+        let rotation = util::get_angle(self.position, target);
+        self.position += Vec2{x: rotation.cos(), y: rotation.sin()} * ASTROID_SPEED;
+    }
 
 }

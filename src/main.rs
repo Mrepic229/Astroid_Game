@@ -1,19 +1,17 @@
 mod astroid;
 mod util;
-mod bullets;
+mod bullet;
 mod player;
 
 use macroquad::prelude::*;
-use core::f32::consts::PI;
-use fastrand;
+//use core::f32::consts::PI;
+//use fastrand;
 
 use crate::astroid::Astroid;
-use crate::bullets::Bullet;
+use crate::bullet::Bullet;
 use crate::player::Player;
 
 
-
-const PLAYER_SPEED: f32 = 1.0;
 
 #[macroquad::main("BasicShapes")]
 async fn main() {
@@ -29,102 +27,60 @@ async fn main() {
     loop {
         clear_background(WHITE);
 
-        player = player_rotation(player);
+        player.rotate();
+        player.move_pos();
 
-        // Spawn Bullets
+        
         if is_mouse_button_down(MouseButton::Right) {
-            bullets.push(add_bullet(player));
+            bullets.push(Bullet::add(player));
         }
         if is_mouse_button_down(MouseButton::Left) {
-            astroids.push(astroid_generate(get_random_offscree_pos(), 40.0));
+            astroids.push(Astroid::new(util::get_random_offscree_pos(), 40.0));
         }
 
         bullets = bullets_move_or_kill(bullets);
 
-        astroids = astroids_move(astroids, player);
+        astroids = astroids_move(astroids, player.position);
 
         example_astroid.position = player.position;
 
-        astroid_draw(example_astroid.clone());
-        astroids_draw(astroids.clone());
-        draw_bullets(bullets.clone());
-        draw_player(player);
+        
+        for i in &bullets {i.draw()}
+        for i in &astroids {i.draw()}
+        example_astroid.draw();
+        player.draw();
         next_frame().await;
     }
 }
 
-fn player_rotation(mut player:Player) -> Player {
-    player.rotation = ((mouse_position().1-player.position.y)/(mouse_position().0-player.position.x)).atan();
-    if (mouse_position().0-player.position.x) < 0.0 {
-        player.rotation += PI
-    }
-        
-    if !is_mouse_button_down(MouseButton::Left) {
-        player = player_forward(player.clone());
-    }  
-    player
-}
+fn bullets_move_or_kill(bullets:Vec<Bullet>) -> Vec<Bullet> {
+    
 
-fn draw_player(player:Player) {
-    let radius = player.radius;
-    let v1: Vec2 = Vec2 {
-        x: player.position.x + (radius * player.rotation.cos()),
-        y: player.position.y + (radius * player.rotation.sin())
-    };
-    let v2: Vec2 = Vec2 {
-        x: player.position.x - (radius * (player.rotation + PI/4.0).cos()),
-        y: player.position.y - (radius * (player.rotation + PI/4.0).sin())
-    };
-    let v3: Vec2 = Vec2 {
-        x: player.position.x - (radius * (player.rotation - PI/4.0).cos()),
-        y: player.position.y - (radius * (player.rotation - PI/4.0).sin())
-    };
+    let mut new_total: Vec<Bullet> = bullets.clone();
+    let mut new_total_mut: Vec<&mut Bullet> = new_total.iter_mut().collect();
 
-    draw_triangle(v1, v2, v3, BLACK)
-}
-
-fn player_forward(mut player:Player) -> Player {
-    player.position.x += PLAYER_SPEED * player.rotation.cos();
-    player.position.y += PLAYER_SPEED * player.rotation.sin();
-    return player;
-}
-
-fn bullets_move_or_kill(mut bullets:Vec<Bullet>) -> Vec<Bullet> {
-    let mut i = 0;
-    while i < bullets.len() {
-        bullets[i] = bullet_forward(bullets[i]);
-        if is_bullet_offscreen(bullets[i]) {
-            bullets.remove(i);
+    let mut to_remove = vec![];
+    for (j, i) in new_total_mut.iter_mut().enumerate() {
+        i.move_pos();
+        if i.is_offscreen() {
+            to_remove.push(j);
         }
-        i += 1;
     }
-    bullets
+
+    for j in to_remove.into_iter().rev() {
+        new_total.remove(j);
+    }
+    new_total
 }
 
-fn draw_bullets(bullets:Vec<Bullet>) {
-    for i in bullets {
-        Bullet::draw(&i);
-    }
-}
-
-fn astroids_draw(astroids:Vec<Astroid>) {
-    for i in 0..astroids.len(){
-        let mut astro = astroids[i].clone();
-        astro.draw();
-    }
-}
-
-fn astroids_move(mut astroids:Vec<Astroid>,player:Player) -> Vec<Astroid> {
-    for i in 0..astroids.len() {
-        
+fn astroids_move(mut astroids:Vec<Astroid>, target:Vec2) -> Vec<Astroid> {
+    for i in &mut astroids {
+        i.move_pos(target);
     }
     astroids
 }
 
-pub fn move_pos(&mut self) {
-    let rotation = util::get_angle(astroids[i].position, player.position);
-    astroids[i].position += Vec2{x: rotation.cos(), y: rotation.sin()} * ASTROID_SPEED;
-}
+
 
 
 
