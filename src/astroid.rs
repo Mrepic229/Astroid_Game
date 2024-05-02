@@ -1,6 +1,6 @@
 use macroquad::prelude::*;
 use core::f32::consts::PI;
-use crate::util;
+use crate::{bullet::Bullet, util::{self, get_distance}};
 
 #[derive(Clone)]
 pub struct Astroid {
@@ -47,4 +47,12 @@ impl Astroid {
         self.position += Vec2{x: rotation.cos(), y: rotation.sin()} * ASTROID_SPEED;
     }
 
+    pub fn is_intersected(&mut self, bullets: Vec<Bullet>) -> bool {
+        for i in bullets {
+            if get_distance(self.position, i.position) < self.radius {
+                return true;
+            }
+        }
+        return false;
+    }
 }

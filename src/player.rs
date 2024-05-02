@@ -28,7 +28,6 @@ impl Player {
             x: self.position.x - (radius * (self.rotation - PI/4.0).cos()),
             y: self.position.y - (radius * (self.rotation - PI/4.0).sin())
         };
-    
         draw_triangle(v1, v2, v3, BLACK)
     }
 

@@ -3,6 +3,8 @@ mod util;
 mod bullet;
 mod player;
 
+use std::vec;
+
 use macroquad::prelude::*;
 //use core::f32::consts::PI;
 //use fastrand;
@@ -11,10 +13,13 @@ use crate::astroid::Astroid;
 use crate::bullet::Bullet;
 use crate::player::Player;
 
-
-
 #[macroquad::main("BasicShapes")]
 async fn main() {
+    game_loop().await;
+    
+}
+
+async fn game_loop() {
     let mut player: Player = Player {
         position: Vec2{x: 200.0, y: 200.0},
         rotation: 2.0,
@@ -38,12 +43,22 @@ async fn main() {
             astroids.push(Astroid::new(util::get_random_offscree_pos(), 40.0));
         }
 
-        bullets = bullets_move_or_kill(bullets);
+        bullets = Bullet::bullets_move_or_kill(bullets);
 
-        astroids = astroids_move(astroids, player.position);
+        for i in &mut astroids {
+            i.move_pos(player.position);
+        }
+
+        let mut to_kill: Vec<Astroid> = vec![];
+        for (j,i) in astroids.iter().enumerate() {
+            if i.is_intersected(bullets) {
+                to_kill.push(i.clone());
+            }
+        }
+        
+
 
         example_astroid.position = player.position;
-
         
         for i in &bullets {i.draw()}
         for i in &astroids {i.draw()}
@@ -53,32 +68,6 @@ async fn main() {
     }
 }
 
-fn bullets_move_or_kill(bullets:Vec<Bullet>) -> Vec<Bullet> {
-    
-
-    let mut new_total: Vec<Bullet> = bullets.clone();
-    let mut new_total_mut: Vec<&mut Bullet> = new_total.iter_mut().collect();
-
-    let mut to_remove = vec![];
-    for (j, i) in new_total_mut.iter_mut().enumerate() {
-        i.move_pos();
-        if i.is_offscreen() {
-            to_remove.push(j);
-        }
-    }
-
-    for j in to_remove.into_iter().rev() {
-        new_total.remove(j);
-    }
-    new_total
-}
-
-fn astroids_move(mut astroids:Vec<Astroid>, target:Vec2) -> Vec<Astroid> {
-    for i in &mut astroids {
-        i.move_pos(target);
-    }
-    astroids
-}
 
 
 

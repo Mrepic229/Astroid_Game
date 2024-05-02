@@ -47,4 +47,21 @@ impl Bullet {
         self.position.y += BULLET_SPEED * self.rotation.sin();
     }
 
+    pub fn bullets_move_or_kill(bullets:Vec<Bullet>) -> Vec<Bullet> {
+        let mut new_total: Vec<Bullet> = bullets.clone();
+        let mut new_total_mut: Vec<&mut Bullet> = new_total.iter_mut().collect();
+    
+        let mut to_remove = vec![];
+        for (j, i) in new_total_mut.iter_mut().enumerate() {
+            i.move_pos();
+            if i.is_offscreen() {
+                to_remove.push(j);
+            }
+        }
+    
+        for j in to_remove.into_iter().rev() {
+            new_total.remove(j);
+        }
+        new_total
+    }
 }

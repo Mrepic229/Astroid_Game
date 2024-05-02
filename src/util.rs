@@ -1,7 +1,6 @@
 use macroquad::prelude::*;
 use core::f32::consts::PI;
 
-
 pub fn get_random_offscree_pos() -> Vec2 {
     let distance_from_screen:f32 = 50.0;
     let location = fastrand::i32(0..4);
