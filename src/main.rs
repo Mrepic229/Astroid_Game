@@ -49,11 +49,14 @@ async fn game_loop() {
             i.move_pos(player.position);
         }
 
-        let mut to_kill: Vec<Astroid> = vec![];
+        let mut to_kill: Vec<usize> = vec![];
         for (j,i) in astroids.iter().enumerate() {
-            if i.is_intersected(bullets) {
-                to_kill.push(i.clone());
+            if i.is_intersected(bullets.clone()) {
+                to_kill.push(j);
             }
+        }
+        for i in to_kill {
+            astroids.remove(i);
         }
         
 
