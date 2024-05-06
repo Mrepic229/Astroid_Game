@@ -30,13 +30,13 @@ impl Bullet {
         draw_line(pos.x, pos.y, pos.x-(rotation.cos()*length) , pos.y-(rotation.sin()*length), 2.0, RED)
     }
 
-    pub fn add(player:Player) -> Bullet {
+    pub fn add(position: Vec2, rotation: f32) -> Bullet {
         let bullet: Bullet = Bullet {
             position: Vec2 {
-                x: player.position.x,
-                y: player.position.y
+                x: position.x,
+                y: position.y
             },
-            rotation: player.rotation,
+            rotation: rotation,
             length: 20.0, 
         };
         bullet

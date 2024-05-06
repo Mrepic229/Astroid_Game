@@ -38,11 +38,9 @@ impl Player {
         }
     }     
         
-    pub fn move_pos(&mut self) {
-        if !is_mouse_button_down(MouseButton::Left) {
-            self.position.x += PLAYER_SPEED * self.rotation.cos();
-            self.position.y += PLAYER_SPEED * self.rotation.sin();
-        }
+    pub fn move_pos(&mut self) {   
+        self.position.x += PLAYER_SPEED * self.rotation.cos();
+        self.position.y += PLAYER_SPEED * self.rotation.sin();
     }
 
 }
