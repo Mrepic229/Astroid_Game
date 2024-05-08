@@ -2,7 +2,9 @@ mod astroid;
 mod util;
 mod bullet;
 mod player;
+mod lable;
 
+use std::fmt::format;
 use std::vec;
 
 use macroquad::prelude::*;
@@ -18,12 +20,12 @@ use crate::util::get_distance;
 async fn main() {
     main_menu().await;
     loop{
-        game_loop().await;
-        you_lose().await;
+        let score = game_loop().await;
+        you_lose(score).await;
     }
 }
 
-async fn game_loop() {
+async fn game_loop() -> i32 {
     const ASTROID_SPAWN_SCALER: f32 = 0.03;
     let mut astroids_per_second: f32 = 1.0;
 
@@ -35,6 +37,7 @@ async fn game_loop() {
     let mut bullets: Vec<Bullet> = Vec::new();
     let mut example_astroid: Astroid = Astroid::new(player.position, 40.0);
     let mut astroids:Vec<Astroid> = Vec::new();
+    let mut score:i32 = 0;
 
     let mut time_since_astroid_spawn: f32 = 0.0;
     'main: loop {
@@ -43,7 +46,7 @@ async fn game_loop() {
         player.rotate();
         player.move_pos();
         
-        if is_mouse_button_pressed(MouseButton::Left) && bullets.len() < 5 {
+        if is_key_pressed(KeyCode::Space) && bullets.len() < 5 {
             bullets.push(Bullet::add(player.position.clone(), player.rotation.clone()));
         }
 
@@ -62,6 +65,8 @@ async fn game_loop() {
         for i in to_kill.clone().into_iter().rev() {
             astroids.remove(i);
             to_kill.pop();
+            score += 1;
+
         }
 
         if get_time() as f32 - time_since_astroid_spawn > astroids_per_second {
@@ -77,22 +82,25 @@ async fn game_loop() {
         }
 
         example_astroid.position = player.position;
-        println!("{}", astroids.len());
         
         for i in &bullets {i.draw()}
         for i in &astroids {i.draw()}
-        example_astroid.draw();
         player.draw();
 
         next_frame().await;
     }
+    return score
 }
 
-async fn you_lose() {
+async fn you_lose(score: i32) {
+    println!("{}", score);
+    let say_score: String = format!("Score: {}", score);
+
     'main: loop {
         clear_background(WHITE);
-
+        
         draw_text("YOU LOSE", screen_width()/3.0, screen_height()/3.0, 32.0, BLACK);
+        draw_text(&say_score, screen_width()/3.0 ,  screen_height()/2.0, 32.0, BLACK);
         draw_text("right click to play again", screen_width()/3.0, screen_height()*2.0/3.0, 32.0, BLACK);
 
         if is_mouse_button_pressed(MouseButton::Right) {
@@ -108,10 +116,10 @@ async fn main_menu() {
         clear_background(WHITE);
 
         draw_text("ASTROIDS", screen_width()/3.0, screen_height()/3.0, 32.0, BLACK);
-        draw_text("right click to play", screen_width()/3.0, screen_height()*2.0/3.0, 32.0, BLACK);
+        draw_text("left click to play", screen_width()/3.0, screen_height()*2.0/3.0, 32.0, BLACK);
         draw_text("game by D-Pops", screen_width()/3.0, screen_height()*3.0/4.0, 32.0, BLACK);
 
-        if is_mouse_button_pressed(MouseButton::Right) {
+        if is_mouse_button_pressed(MouseButton::Left) {
             break 'main;
         }
 

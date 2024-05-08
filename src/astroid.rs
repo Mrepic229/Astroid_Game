@@ -1,6 +1,7 @@
 use macroquad::prelude::*;
 use core::f32::consts::PI;
-use crate::{bullet::Bullet, util::{self, get_distance}};
+use crate::bullet::Bullet;
+use crate::util::{self, get_distance};
 
 #[derive(Clone)]
 pub struct Astroid {
