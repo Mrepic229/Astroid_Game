@@ -8,12 +8,14 @@ use std::fmt::format;
 use std::vec;
 
 use macroquad::prelude::*;
+use macroquad::ui::widgets::Label;
 //use core::f32::consts::PI;
 //use fastrand;
 
 use crate::astroid::Astroid;
 use crate::bullet::Bullet;
 use crate::player::Player;
+use crate::lable::TextLable;
 use crate::util::get_distance;
 
 #[macroquad::main("BasicShapes")]
@@ -28,6 +30,12 @@ async fn main() {
 async fn game_loop() -> i32 {
     const ASTROID_SPAWN_SCALER: f32 = 0.03;
     let mut astroids_per_second: f32 = 1.0;
+    let mut example_lable = TextLable {
+        position: Vec2 { x: 0.0, y: 0.0 },
+        offset: Vec2 { x: 0.0, y: 0.0 },
+        rotation: 0.0,
+        text: format!("example"),
+    };
 
     let mut player: Player = Player {
         position: Vec2{x: 200.0, y: 200.0},
@@ -82,9 +90,11 @@ async fn game_loop() -> i32 {
         }
 
         example_astroid.position = player.position;
+        example_lable.position = player.position;
         
         for i in &bullets {i.draw()}
         for i in &astroids {i.draw()}
+        example_lable.draw();
         player.draw();
 
         next_frame().await;
