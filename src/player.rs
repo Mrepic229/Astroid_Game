@@ -2,7 +2,6 @@ use macroquad::prelude::*;
 use core::f32::consts::PI;
 //use crate::player;
 
-
 #[derive(Clone, Copy)]
 pub struct Player {
     pub position: Vec2,

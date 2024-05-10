@@ -6,17 +6,17 @@ pub struct TextLable {
     pub offset: Vec2,
     pub rotation: f32,
     pub text: String,
+    pub size: f32,
+    pub color: Color,
 }
 
 impl TextLable {
     pub fn draw(&self) {
-        let offset:Vec2 = Vec2 { //x: self.rotation.cos()*self.offset.x, y: self.rotation.sin()*self.offset.y };
-        x: 0.0,
-        y: 0.0};
-        let new_position:Vec2 = Vec2 { x: offset.x+self.position.x, y: offset.y+self.position.y };
+        let new_position:Vec2 = Vec2 { x: self.offset.x+self.position.x, y: self.offset.y+self.position.y };
 
-        let size: TextDimensions = measure_text(&self.text, None, 100, 1.0);
-        draw_text(&self.text, (size.width/2.0)+new_position.x, (size.height/2.0)+new_position.y, 100.0, BLACK)
+        let size: TextDimensions = measure_text(&self.text, None, self.size as u16, 1.0);
+        
+        draw_text(&self.text, new_position.x-(size.width/2.0), new_position.y-(size.height/2.0), self.size, self.color)
     }
 
 }

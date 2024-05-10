@@ -1,5 +1,4 @@
 use macroquad::prelude::*;
-use crate::player::Player;
 //use core::f32::consts::PI;
 
 const BULLET_SPEED: f32 = 2.0;
@@ -31,7 +30,7 @@ impl Bullet {
     }
 
     pub fn add(position: Vec2, rotation: f32) -> Bullet {
-        let bullet: Bullet = Bullet {
+        let mut bullet: Bullet = Bullet {
             position: Vec2 {
                 x: position.x,
                 y: position.y
@@ -39,6 +38,8 @@ impl Bullet {
             rotation: rotation,
             length: 20.0, 
         };
+        bullet.move_pos(); // spawns laser infront
+        bullet.move_pos(); // of ship and not in ship
         bullet
     }
     
