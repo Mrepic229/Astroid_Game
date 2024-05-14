@@ -26,11 +26,14 @@ async fn main() {
 }
 
 async fn game_loop() -> i32 {
-    const ASTROID_SPAWN_SCALER: f32 = 0.03;
+    const ASTROID_SPAWN_SCALER: f32 = 0.007;
+    let mut astroids_per_second: f32 = 0.7;
+
+    const ASTROID_SPEED_SCALER: f32 = 0.002;
+    let mut astroids_speed: f32 = 0.5;
+
+    const MAX_ASTROIDS: i32 = 10;
     const MAX_BULLETS: i32 = 5;
-    let mut astroids_per_second: f32 = 1.0;
-    let sound_laser = audio::load_sound("../sound/blaster.mp3").await.unwrap();
-    let sound_explosion = audio::load_sound("../sound/explosion.mp3").await.unwrap();
 
     let mut score_lable = TextLable {
         position: Vec2 { x: 0.0, y: 0.0 },
@@ -56,7 +59,7 @@ async fn game_loop() -> i32 {
     };
 
     let mut bullets: Vec<Bullet> = Vec::new();
-    let mut example_astroid: Astroid = Astroid::new(player.position, 40.0);
+    let mut example_astroid: Astroid = Astroid::new(player.position, 40.0, astroids_speed);
     let mut astroids:Vec<Astroid> = Vec::new();
     let mut score:i32 = 0;
 
@@ -69,7 +72,6 @@ async fn game_loop() -> i32 {
         
         if is_key_pressed(KeyCode::Space) && bullets.len() < MAX_BULLETS as usize {
             bullets.push(Bullet::add(player.position.clone(), player.rotation.clone()));
-            audio::play_sound_once(&sound_laser);
         }
 
         bullets = Bullet::bullets_move_or_kill(bullets);
@@ -85,23 +87,25 @@ async fn game_loop() -> i32 {
             }
         }
         for i in to_kill.clone().into_iter().rev() {
+            if astroids[i].color == GOLD {
+                score += 2;
+            }
             astroids.remove(i);
             to_kill.pop();
             score += 1;
-            score_lable.text = format!("Score: {}", score)
+            score_lable.text = format!("Score: {}00", score)
         }
 
         if get_time() as f32 - time_since_astroid_spawn > astroids_per_second {
             time_since_astroid_spawn = get_time() as f32;
-            astroids.push(Astroid::new(util::get_random_offscree_pos(), 40.0));
-            if astroids.len() > 10{
-                astroids_per_second = astroids_per_second * (1.0-ASTROID_SPAWN_SCALER)
-            }
+            astroids.push(Astroid::new(util::get_random_offscree_pos(), 40.0, astroids_speed));
+            astroids_per_second *= 1.0 - ASTROID_SPAWN_SCALER;
+            astroids_speed *= 1.0 + ASTROID_SPEED_SCALER;
+            
         }
 
         for i in &astroids {
             if get_distance(player.position, i.position) < player.radius + i.radius {
-                audio::play_sound_once(&sound_explosion);
                 break 'main;
             }
         }
@@ -130,7 +134,7 @@ async fn game_loop() -> i32 {
 
 async fn you_lose(score: i32) {
     println!("{}", score);
-    let say_score: String = format!("Score: {}", score);
+    let say_score: String = format!("Score: {}00", score);
 
     'main: loop {
         clear_background(WHITE);
