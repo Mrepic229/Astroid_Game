@@ -13,7 +13,7 @@ pub struct Astroid {
     pub color: Color,
 }
 
-const BUMPYNESS: f32 = 20.0;
+const BUMPYNESS: f32 = 25.0;
 
 impl Astroid {
     pub fn new(pos: Vec2, radius: f32, speed: f32 ) -> Astroid {

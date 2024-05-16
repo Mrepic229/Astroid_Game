@@ -26,7 +26,7 @@ async fn main() {
 }
 
 async fn game_loop() -> i32 {
-    const ASTROID_SPAWN_SCALER: f32 = 0.007;
+    const ASTROID_SPAWN_SCALER: f32 = 0.01;
     let mut astroids_per_second: f32 = 0.7;
 
     const ASTROID_SPEED_SCALER: f32 = 0.002;
@@ -59,8 +59,9 @@ async fn game_loop() -> i32 {
     };
 
     let mut bullets: Vec<Bullet> = Vec::new();
-    let mut example_astroid: Astroid = Astroid::new(player.position, 40.0, astroids_speed);
     let mut astroids:Vec<Astroid> = Vec::new();
+    let mut astroid_lables: Vec<TextLable> = Vec::new();
+    let mut example_astroid: Astroid = Astroid::new(player.position, 40.0, astroids_speed);
     let mut score:i32 = 0;
 
     let mut time_since_astroid_spawn: f32 = 0.0;
@@ -87,12 +88,23 @@ async fn game_loop() -> i32 {
             }
         }
         for i in to_kill.clone().into_iter().rev() {
+            let score_to_add = 1;
             if astroids[i].color == GOLD {
-                score += 2;
+                score_to_add += 2;
             }
+            let astroid_position = astroids[i].position;
+            let mut astroid_lable = TextLable{
+                position: astroid_position,
+                offset: Vec2 { x: 0.0, y: 0.0 },
+                rotation: PI,
+                text: format!("aaaa"),
+                size: 30.0,
+                color: RED,
+            };
+            astroid_lable.draw();
             astroids.remove(i);
             to_kill.pop();
-            score += 1;
+            score += score_to_add;
             score_lable.text = format!("Score: {}00", score)
         }
 
