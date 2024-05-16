@@ -8,6 +8,7 @@ pub struct TextLable {
     pub text: String,
     pub size: f32,
     pub color: Color,
+    pub timeout: f32,
 }
 
 impl TextLable {

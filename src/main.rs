@@ -42,6 +42,8 @@ async fn game_loop() -> i32 {
         text: format!("Space to shoot laser"),
         size: 30.0,
         color: BLACK,
+        timeout: 10000.0
+        
     };
     let mut ammo_lable = TextLable {
         position: Vec2 { x: 0.0, y: 0.0 },
@@ -50,6 +52,8 @@ async fn game_loop() -> i32 {
         text: format!("|||||"),
         size: 30.0,
         color: RED,
+        timeout: 10000.0
+
     };
 
     let mut player: Player = Player {
@@ -88,20 +92,22 @@ async fn game_loop() -> i32 {
             }
         }
         for i in to_kill.clone().into_iter().rev() {
-            let score_to_add = 1;
+            let mut score_to_add = 1;
             if astroids[i].color == GOLD {
                 score_to_add += 2;
             }
             let astroid_position = astroids[i].position;
-            let mut astroid_lable = TextLable{
+            astroid_lables.push(TextLable{
                 position: astroid_position,
                 offset: Vec2 { x: 0.0, y: 0.0 },
                 rotation: PI,
-                text: format!("aaaa"),
+                text: format!("+{score_to_add}00"),
                 size: 30.0,
                 color: RED,
-            };
-            astroid_lable.draw();
+                timeout: 2.0,
+            });
+            
+            //astroid_lable.draw();
             astroids.remove(i);
             to_kill.pop();
             score += score_to_add;
@@ -132,6 +138,7 @@ async fn game_loop() -> i32 {
         ammo_lable.position = player.position;
         example_astroid.position = score_lable.position;
 
+        for i in &astroid_lables {i.draw()}
         for i in &bullets {i.draw()}
         for i in &astroids {i.draw()}
         score_lable.draw();
