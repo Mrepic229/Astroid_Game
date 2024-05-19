@@ -29,7 +29,7 @@ impl Bullet {
         draw_line(pos.x, pos.y, pos.x-(rotation.cos()*length) , pos.y-(rotation.sin()*length), 2.0, RED)
     }
 
-    pub fn add(position: Vec2, rotation: f32) -> Bullet {
+    pub fn new(position: Vec2, rotation: f32) -> Bullet {
         let mut bullet: Bullet = Bullet {
             position: Vec2 {
                 x: position.x,

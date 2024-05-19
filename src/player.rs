@@ -11,7 +11,7 @@ pub struct Player {
     pub radius: f32,
 }
 
-const PLAYER_SPEED: f32 = 1.2;
+const PLAYER_SPEED: f32 = 1.0;
 
 impl Player {
 

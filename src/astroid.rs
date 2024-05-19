@@ -24,7 +24,7 @@ impl Astroid {
         }
 
         let mut color = BLACK;
-        if fastrand::i32(0..10) == 0 {
+        if fastrand::i32(0..7) == 0 {
             color = GOLD;
         }
 

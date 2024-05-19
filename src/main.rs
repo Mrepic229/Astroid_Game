@@ -13,7 +13,7 @@ use core::f32::consts::PI;
 use crate::astroid::Astroid;
 use crate::bullet::Bullet;
 use crate::player::Player;
-use crate::lable::TextLable;
+use crate::lable::{TextLable, VectorTextLable};
 use crate::util::get_distance;
 
 #[macroquad::main("BasicShapes")]
@@ -35,26 +35,9 @@ async fn game_loop() -> i32 {
     const MAX_ASTROIDS: i32 = 10;
     const MAX_BULLETS: i32 = 5;
 
-    let mut score_lable = TextLable {
-        position: Vec2 { x: 0.0, y: 0.0 },
-        offset: Vec2 { x: 0.0, y: -20.0 },
-        rotation: PI,
-        text: format!("Space to shoot laser"),
-        size: 30.0,
-        color: BLACK,
-        timeout: 10000.0
-        
-    };
-    let mut ammo_lable = TextLable {
-        position: Vec2 { x: 0.0, y: 0.0 },
-        offset: Vec2 { x: 0.0, y: 50.0 },
-        rotation: PI,
-        text: format!("|||||"),
-        size: 30.0,
-        color: RED,
-        timeout: 10000.0
-
-    };
+    
+    let mut score_lable = TextLable::new(Vec2{x: 0.0, y: -20.0}, format!("Space to shoot laser"), BLACK);
+    let mut ammo_lable = TextLable::new(Vec2 { x: 0.0, y: 50.0 }, format!("|||||"), RED);
 
     let mut player: Player = Player {
         position: Vec2{x: 200.0, y: 200.0},
@@ -64,11 +47,11 @@ async fn game_loop() -> i32 {
 
     let mut bullets: Vec<Bullet> = Vec::new();
     let mut astroids:Vec<Astroid> = Vec::new();
-    let mut astroid_lables: Vec<TextLable> = Vec::new();
+    let mut astroid_lables: VectorTextLable = VectorTextLable::new();
     let mut example_astroid: Astroid = Astroid::new(player.position, 40.0, astroids_speed);
     let mut score:i32 = 0;
-
     let mut time_since_astroid_spawn: f32 = 0.0;
+
     'main: loop {
         clear_background(WHITE);
 
@@ -76,7 +59,7 @@ async fn game_loop() -> i32 {
         player.move_pos();
         
         if is_key_pressed(KeyCode::Space) && bullets.len() < MAX_BULLETS as usize {
-            bullets.push(Bullet::add(player.position.clone(), player.rotation.clone()));
+            bullets.push(Bullet::new(player.position.clone(), player.rotation.clone()));
         }
 
         bullets = Bullet::bullets_move_or_kill(bullets);
@@ -86,9 +69,9 @@ async fn game_loop() -> i32 {
         }
 
         let mut to_kill: Vec<usize> = vec![];
-        for j in 0..astroids.len() {
-            if astroids[j].is_intersected(bullets.clone()) {
-                to_kill.push(j);
+        for i in 0..astroids.len() {
+            if astroids[i].is_intersected(bullets.clone()) {
+                to_kill.push(i);
             }
         }
         for i in to_kill.clone().into_iter().rev() {
@@ -96,18 +79,13 @@ async fn game_loop() -> i32 {
             if astroids[i].color == GOLD {
                 score_to_add += 2;
             }
-            let astroid_position = astroids[i].position;
-            astroid_lables.push(TextLable{
-                position: astroid_position,
-                offset: Vec2 { x: 0.0, y: 0.0 },
-                rotation: PI,
-                text: format!("+{score_to_add}00"),
-                size: 30.0,
-                color: RED,
-                timeout: 2.0,
-            });
             
-            //astroid_lable.draw();
+            let astroid_position = astroids[i].position;
+            let mut new_lable = TextLable::new(Vec2 { x: 0.0, y: 0.0 }, format!("+{score_to_add}00"), RED);
+            new_lable.position = astroid_position;
+            new_lable.timeout = 2.0;
+            astroid_lables.vector.push(new_lable);
+        
             astroids.remove(i);
             to_kill.pop();
             score += score_to_add;
@@ -119,7 +97,6 @@ async fn game_loop() -> i32 {
             astroids.push(Astroid::new(util::get_random_offscree_pos(), 40.0, astroids_speed));
             astroids_per_second *= 1.0 - ASTROID_SPAWN_SCALER;
             astroids_speed *= 1.0 + ASTROID_SPEED_SCALER;
-            
         }
 
         for i in &astroids {
@@ -134,11 +111,15 @@ async fn game_loop() -> i32 {
         }
         ammo_lable.text = ammo_count_at_frame;
         
+
         score_lable.position = player.position;
         ammo_lable.position = player.position;
         example_astroid.position = score_lable.position;
 
-        for i in &astroid_lables {i.draw()}
+
+        astroid_lables.update_timeout();
+        astroid_lables.update_opacity();
+        for i in &astroid_lables.vector {i.draw()}
         for i in &bullets {i.draw()}
         for i in &astroids {i.draw()}
         score_lable.draw();
